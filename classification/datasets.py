@@ -79,7 +79,7 @@ class WikiCommentsDatasets(Datasets):
             class_ids=train_df[-5000:].toxic[:config.max_val_size],
             max_seq_length=config.max_seq_length,
             tokenizer=tokenizer)
-        self.val = prepare_tensor_dataset(
+        self.test = prepare_tensor_dataset(
             texts=test_df.comment_text[:config.max_test_size],
             class_ids=abs(test_df.toxic)[:config.max_test_size],  # They're -1 for some reason.,
             max_seq_length=config.max_seq_length,
