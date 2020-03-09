@@ -58,7 +58,6 @@ def prepare_tensor_dataset(texts, class_ids, max_seq_length, tokenizer):
 class Datasets:
     name = None
 
-
 class WikiCommentsDatasets(Datasets):
 
     name = 'wikipedia_comments'
@@ -70,20 +69,20 @@ class WikiCommentsDatasets(Datasets):
         test_df = pd.merge(test_df, test_labels_df)
 
         self.train = prepare_tensor_dataset(
-            texts=train_df[:-5000].comment_text[:config.max_train_size],
-            class_ids=train_df[:-5000].toxic[:config.max_train_size],
+            texts=train_df[:-30000].comment_text[:config.max_train_size],
+            class_ids=train_df[:-30000].toxic[:config.max_train_size],
             max_seq_length=config.max_seq_length,
             tokenizer=tokenizer)
         self.val = prepare_tensor_dataset(
-            texts=train_df[-5000:].comment_text[:config.max_train_size],
-            class_ids=train_df[-5000:].toxic[:config.max_val_size],
+            texts=train_df[-30000:].comment_text[:config.max_train_size],
+            class_ids=train_df[-30000:].toxic[:config.max_val_size],
             max_seq_length=config.max_seq_length,
             tokenizer=tokenizer)
-        self.test = prepare_tensor_dataset(
-            texts=test_df.comment_text[:config.max_test_size],
-            class_ids=abs(test_df.toxic)[:config.max_test_size],  # They're -1 for some reason.,
-            max_seq_length=config.max_seq_length,
-            tokenizer=tokenizer)
+        # self.test = prepare_tensor_dataset(
+        #     texts=test_df.comment_text[:config.max_test_size],
+        #     class_ids=abs(test_df.toxic)[:config.max_test_size],  # They're -1 for some reason.,
+        #     max_seq_length=config.max_seq_length,
+        #     tokenizer=tokenizer)
 
 
 class NewsgroupDatasets(Datasets):
