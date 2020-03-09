@@ -30,7 +30,7 @@ def run_model_on_dataset(model, dataloader, config):
     if model.training:
         if config.optimizer == 'adam':
             optimizer = Adam(model.parameters(), lr=config.lr)
-        elif config.optimizer == 'rsmprop':
+        elif config.optimizer == 'rmsprop':
             optimizer = RMSprop(model.parameters(), lr=config.lr)
 
     for i, batch in enumerate(dataloader):
