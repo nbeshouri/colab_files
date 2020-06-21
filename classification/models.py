@@ -45,7 +45,7 @@ class SimpleModel(nn.Module):
 
 def get_model(config):
 
-    if 'bert' in config.model:
+    if 'bert' in config.model_name:
         return BertForSequenceClassification.from_pretrained(config.model)
 
     for obj in globals().values():
