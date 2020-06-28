@@ -59,7 +59,7 @@ def run_model_on_dataset(model, dataloader, config):
 
 def train_on_dataset(model, dataset, config):
     model.train()
-    dataloader = DataLoader(dataset, shuffle=False, batch_size=config.batch_size, pin_memory=True)
+    dataloader = DataLoader(dataset, shuffle=True, batch_size=config.batch_size, pin_memory=True)
     return run_model_on_dataset(model, dataloader, config)
 
 
