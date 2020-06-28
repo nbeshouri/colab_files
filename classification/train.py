@@ -95,8 +95,8 @@ def train(config, wb_project=None):
             wandb.log({
                 'train_accuracy': accuracy_score(train_label_ids, train_preds),
                 'train_loss': train_loss,
-                'train_examples_per_second': config.train_set_size / train_timer.interval,
+                'train_examples_per_second': len(data.train) / train_timer.interval,
                 'val_accuracy': accuracy_score(val_label_ids, val_preds),
                 'val_loss': val_loss,
-                'val_examples_per_second': config.val_set_size / val_timer.interval
+                'val_examples_per_second': len(data.train) / val_timer.interval
             })
