@@ -68,6 +68,7 @@ def under_sample(data_df, class_col, random_state=42):
 class Datasets:
     name = None
 
+
 class WikiCommentsDatasets(Datasets):
 
     name = 'wikipedia_comments'
@@ -77,6 +78,7 @@ class WikiCommentsDatasets(Datasets):
         test_df = pd.read_csv(os.path.join(DATA_DIR_PATH, 'datasets', 'wikipedia_comments', 'test.csv.zip'))
         test_labels_df = pd.read_csv(os.path.join(DATA_DIR_PATH, 'datasets', 'wikipedia_comments', 'test_labels.csv.zip'))
         test_df = pd.merge(test_df, test_labels_df)
+        test_df['toxic'] = test_df['toxic'].apply(lambda x: 0 if x == 0 else 1)
 
         if config.get('undersample', False):
             train_df = under_sample(train_df, class_col='toxic')
@@ -92,6 +94,7 @@ class WikiCommentsDatasets(Datasets):
             class_ids=test_df.toxic[:config.max_val_size],
             max_seq_length=config.max_seq_length,
             tokenizer=tokenizer)
+
 
 class NewsgroupDatasets(Datasets):
 
