@@ -26,6 +26,16 @@ def prepare_tensor_dataset(texts, class_ids, max_seq_length, tokenizer):
     return TensorDataset(token_ids_seqs, att_masks, token_type_id_seqs, class_ids)
 
 
+def under_sample(data_df, class_col, random_state=42):
+    value_counts = data_df[class_col].value_counts()
+    count = value_counts.min()
+    df_parts = []
+    for class_i in value_counts.index:
+        df_parts.append(data_df[data_df[class_col] == class_i].sample(
+            count, random_state=random_state))
+    sample_df = pd.concat(df_parts, axis=0)
+    return sample_df.sample(sample_df.shape[0], random_state=42)
+
 # def load_dataset(dataset_name, version, tokenizer, max_length):
 #     if dataset_name == 'wikipedia_comments':
 #         train_df = pd.read_csv(os.path.join(DATA_DIR_PATH, 'datasets', dataset_name, 'train.csv.zip'))
@@ -68,22 +78,20 @@ class WikiCommentsDatasets(Datasets):
         test_labels_df = pd.read_csv(os.path.join(DATA_DIR_PATH, 'datasets', 'wikipedia_comments', 'test_labels.csv.zip'))
         test_df = pd.merge(test_df, test_labels_df)
 
+        if config.get('undersample', False):
+            train_df = under_sample(train_df, class_col='toxic')
+            test_df = under_sample(test_df, class_col='toxic')
+
         self.train = prepare_tensor_dataset(
-            texts=train_df[:-30000].comment_text[:config.max_train_size],
-            class_ids=train_df[:-30000].toxic[:config.max_train_size],
+            texts=train_df.comment_text[:config.max_train_size],
+            class_ids=train_df.toxic[:config.max_train_size],
             max_seq_length=config.max_seq_length,
             tokenizer=tokenizer)
         self.val = prepare_tensor_dataset(
-            texts=train_df[-30000:].comment_text[:config.max_train_size],
-            class_ids=train_df[-30000:].toxic[:config.max_val_size],
+            texts=test_df.comment_text[:config.max_train_size],
+            class_ids=test_df.toxic[:config.max_val_size],
             max_seq_length=config.max_seq_length,
             tokenizer=tokenizer)
-        # self.test = prepare_tensor_dataset(
-        #     texts=test_df.comment_text[:config.max_test_size],
-        #     class_ids=abs(test_df.toxic)[:config.max_test_size],  # They're -1 for some reason.,
-        #     max_seq_length=config.max_seq_length,
-        #     tokenizer=tokenizer)
-
 
 class NewsgroupDatasets(Datasets):
 
