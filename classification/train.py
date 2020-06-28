@@ -101,6 +101,8 @@ def train(config, wb_project=None):
                 'val_accuracy': accuracy_score(val_label_ids, val_preds),
                 'val_loss': val_loss,
                 'val_examples_per_second': len(data.train) / val_timer.interval,
-                'train_preds_match': int(last_train_preds is None or tuple(train_preds) == last_train_preds)
+                'train_preds_match': int(last_train_preds is None or tuple(train_preds) == last_train_preds),
+                'train_preds_count': len(train_preds),
+                'train_preds_mean': np.average(train_preds)
             })
             last_train_preds = tuple(train_preds)
