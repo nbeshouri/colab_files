@@ -82,6 +82,8 @@ def train(config, wb_project=None):
         wandb.watch(model, log=None)
         wandb.config.update(config)
 
+    last_train_preds = None
+
     for epoch in range(config.epochs + 1):
         with Timer() as train_timer:
             if epoch == 0:
@@ -98,5 +100,7 @@ def train(config, wb_project=None):
                 'train_examples_per_second': len(data.train) / train_timer.interval,
                 'val_accuracy': accuracy_score(val_label_ids, val_preds),
                 'val_loss': val_loss,
-                'val_examples_per_second': len(data.train) / val_timer.interval
+                'val_examples_per_second': len(data.train) / val_timer.interval,
+                'train_preds_match': int(last_train_preds is None or tuple(train_preds) == last_train_preds)
             })
+            last_train_preds = tuple(train_preds)
