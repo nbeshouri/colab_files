@@ -13,7 +13,7 @@ def prepare_tensor_dataset(texts, class_ids, max_seq_length, tokenizer):
     def pad_seqs(seqs):
         return [seq + ((max_seq_length - len(seq)) * [0]) for seq in seqs]
 
-    token_ids_seqs = [tokenizer.encode(t, add_special_tokens=True, max_length=max_seq_length) for t in texts]
+    token_ids_seqs = [tokenizer.encode(t, add_special_tokens=True, max_length=max_seq_length, truncation=True) for t in texts]
 
     att_masks = [[1] * len(ts) for ts in token_ids_seqs]
     token_type_id_seqs = [[0] * len(ts) for ts in token_ids_seqs]
