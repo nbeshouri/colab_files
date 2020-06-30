@@ -94,7 +94,7 @@ def train(config, wb_project=None):
             val_preds, val_label_ids, val_loss = eval_on_dataset(model, data.val, config)
 
         if wb_project is not None:
-            wandb.log({
+            log_dict = {
                 'train_accuracy': accuracy_score(train_label_ids, train_preds),
                 'train_loss': train_loss,
                 'train_examples_per_second': len(data.train) / train_timer.interval,
@@ -104,5 +104,7 @@ def train(config, wb_project=None):
                 'train_preds_match': int(last_train_preds is None or tuple(train_preds) == last_train_preds),
                 'train_preds_count': len(train_preds),
                 'train_preds_mean': np.average(train_preds)
-            })
+            }
+            wandb.log(log_dict)
+            print(log_dict)
             last_train_preds = tuple(train_preds)
