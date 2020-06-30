@@ -79,7 +79,7 @@ def train(config, wb_project=None):
     if wb_project is not None:
         wandb.init(entity='nbeshouri', project=wb_project)
         wandb.watch_called = False
-        wandb.watch(model, log=None)
+        wandb.watch(model, log='gradients', log_freq=1)
         wandb.config.update(config)
 
     last_train_preds = None
