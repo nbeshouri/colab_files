@@ -3,6 +3,7 @@ from torch.optim.adam import Adam
 from torch.optim import RMSprop
 import wandb
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler
+from transformers import get_linear_schedule_with_warmup
 
 import numpy as np
 from sklearn.metrics import accuracy_score
@@ -22,16 +23,10 @@ class Timer:
         self.interval = self.end - self.start
 
 
-def run_model_on_dataset(model, dataloader, config):
+def run_model_on_dataset(model, dataloader, config, optimizer=None, scheduler=None):
     total_loss = 0
     preds = []
     label_ids = []
-
-    if model.training:
-        if config.optimizer == 'adam':
-            optimizer = Adam(model.parameters(), lr=config.lr)
-        elif config.optimizer == 'rmsprop':
-            optimizer = RMSprop(model.parameters(), lr=config.lr)
 
     for i, batch in enumerate(dataloader):
         device = torch.device(config.device)
@@ -50,6 +45,8 @@ def run_model_on_dataset(model, dataloader, config):
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+            if scheduler is not None:
+                scheduler.step()
 
         preds.extend(np.argmax(logits.detach().cpu().numpy(), axis=1))
         label_ids.extend(inputs["labels"].detach().cpu().numpy())
@@ -60,7 +57,22 @@ def run_model_on_dataset(model, dataloader, config):
 def train_on_dataset(model, dataset, config):
     model.train()
     dataloader = DataLoader(dataset, shuffle=True, batch_size=config.batch_size, pin_memory=True)
-    return run_model_on_dataset(model, dataloader, config)
+
+    if config.optimizer == 'adam':
+        optimizer = Adam(model.parameters(), lr=config.lr)
+    elif config.optimizer == 'rmsprop':
+        optimizer = RMSprop(model.parameters(), lr=config.lr)
+    else:
+        raise ValueError(f'"{config.optimizer}" is an invalid optimizer name!')
+
+    scheduler = None
+    if config.get('use_linear_lr_decay', False):
+        scheduler = get_linear_schedule_with_warmup(
+            optimizer,
+            num_warmup_steps=0,
+            num_training_steps=len(train_dataloader) * config.epochs)
+
+    return run_model_on_dataset(model, dataloader, config, optimizer=optimizer, scheduler=scheduler)
 
 
 def eval_on_dataset(model, dataset, config):
