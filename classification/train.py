@@ -66,11 +66,14 @@ def train_on_dataset(model, dataset, config):
         raise ValueError(f'"{config.optimizer}" is an invalid optimizer name!')
 
     scheduler = None
-    if config.get('use_linear_lr_decay', False):
-        scheduler = get_linear_schedule_with_warmup(
-            optimizer,
-            num_warmup_steps=0,
-            num_training_steps=len(train_dataloader) * config.epochs)
+    if 'learning_rate_decay_schedule' in config:
+        if config.learning_rate_decay_schedule == 'linear':
+            scheduler = get_linear_schedule_with_warmup(
+                optimizer,
+                num_warmup_steps=0,
+                num_training_steps=len(dataloader) * config.epochs)
+        else:
+            raise ValueError(f'"{config.optimizer}" is an invalid optimizer name!')
 
     return run_model_on_dataset(model, dataloader, config, optimizer=optimizer, scheduler=scheduler)
 
