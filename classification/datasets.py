@@ -90,7 +90,7 @@ class WikiCommentsDatasets(Datasets):
             max_seq_length=config.max_seq_length,
             tokenizer=tokenizer)
         self.val = prepare_tensor_dataset(
-            texts=test_df.comment_text[:config.max_train_size],
+            texts=test_df.comment_text[:config.max_val_size],
             class_ids=test_df.toxic[:config.max_val_size],
             max_seq_length=config.max_seq_length,
             tokenizer=tokenizer)
