@@ -78,7 +78,7 @@ class WikiCommentsDatasets(Datasets):
         test_df = pd.read_csv(os.path.join(DATA_DIR_PATH, 'datasets', 'wikipedia_comments', 'test.csv.zip'))
         test_labels_df = pd.read_csv(os.path.join(DATA_DIR_PATH, 'datasets', 'wikipedia_comments', 'test_labels.csv.zip'))
         test_df = pd.merge(test_df, test_labels_df)
-        test_df['toxic'] = test_df['toxic'].apply(lambda x: 0 if x == 0 else 1)
+        test_df = test_df.query('toxic != -1')
 
         if config.get('undersample', False):
             train_df = under_sample(train_df, class_col='toxic')
