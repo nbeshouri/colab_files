@@ -1,0 +1,28 @@
+program: train.py
+method: grid
+metric:
+  goal: minimize
+  name: auc
+parameters:
+  undersample:
+    value: False
+  tokenizer:
+    value: 'bert-base-uncased'
+  dataset:
+    value: 'wikipedia_comments'
+  model_name:
+    value: 'simple_rnn'
+  optimizer:
+    value: 'rmsprop'
+  epochs:
+    value: 500
+  batch_size:
+    value: 64
+  max_seq_length:
+    value: 300
+  max_train_size:
+    value: 10000
+  max_val_size:
+    value: 10000
+  lr:
+    value: 0.01
