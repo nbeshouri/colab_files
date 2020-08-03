@@ -15,14 +15,14 @@ parameters:
   optimizer:
     value: 'rmsprop'
   epochs:
-    value: 500
+    value: 20
   batch_size:
     value: 64
   max_seq_length:
     value: 300
   max_train_size:
-    value: 10000
+    value: 10
   max_val_size:
-    value: 10000
+    value: 10
   lr:
     value: 0.01
