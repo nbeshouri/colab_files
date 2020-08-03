@@ -9,7 +9,8 @@ import os
 import yaml
 
 import numpy as np
-from sklearn.metrics import accuracy_score
+import pandas as pd
+from sklearn.metrics import accuracy_score, roc_auc_score
 import seaborn as sns; sns.set()
 from time import time
 from classification import models, datasets, tokenizers
@@ -69,7 +70,7 @@ def train_on_dataset(model, dataset, config):
         raise ValueError(f'"{config.optimizer}" is an invalid optimizer name!')
 
     scheduler = None
-    if 'learning_rate_decay_schedule' in config:
+    if config.get('learning_rate_decay_schedule', None) is not None:
         if config.learning_rate_decay_schedule == 'linear':
             scheduler = get_linear_schedule_with_warmup(
                 optimizer,
@@ -107,12 +108,16 @@ def train(config):
 
         log_dict = {
             'train_accuracy': accuracy_score(train_label_ids, train_preds),
+            'train_accuracy_weighted': weighted_accuracy_score(train_label_ids, train_preds),
             'train_loss': train_loss,
             'train_examples_per_second': len(data.train) / train_timer.interval,
+            'train_auc': roc_auc_score(train_label_ids, train_preds),
 
             'val_accuracy': accuracy_score(val_label_ids, val_preds),
+            'val_accuracy_weighted': weighted_accuracy_score(val_label_ids, val_preds),
             'val_loss': val_loss,
             'val_examples_per_second': len(data.train) / val_timer.interval,
+            'val_auc': roc_auc_score(val_label_ids, val_preds),
 
             'train_preds_match': int(last_train_preds is None or tuple(train_preds) == last_train_preds),
             'train_preds_count': len(train_preds),
@@ -121,6 +126,14 @@ def train(config):
         wandb.log(log_dict)
         print(log_dict)
         last_train_preds = tuple(train_preds)
+
+
+def weighted_accuracy_score(y_true, y_pred):
+    class_to_weight = pd.Series(y_true).value_counts()
+    class_to_weight = class_to_weight.max() / class_to_weight
+
+    sample_weights = [class_to_weight[c] for c in y_true]
+    return accuracy_score(y_true, y_pred, sample_weight=sample_weights)
 
 
 if __name__ == '__main__':
