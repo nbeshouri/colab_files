@@ -128,7 +128,7 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--configs', type=str, default=None, metavar='N')
     parser.add_argument('--project', type=str, default='delete_me', metavar='N')
 
-    args = parser.parse_args()
+    args, unknown = parser.parse_known_args()
 
     if args.configs is not None:
         os.environ['WANDB_CONFIG_PATHS'] = args.configs
@@ -136,4 +136,10 @@ if __name__ == '__main__':
     wandb.init(entity='nbeshouri', project=args.project)
 
     config = wandb.config
-    print(config)
+
+    if torch.cuda.is_available():
+        config.device = 'cuda'
+    else:
+        config.device = 'cpu'
+
+    train(config)
