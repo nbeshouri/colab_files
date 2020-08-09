@@ -50,6 +50,7 @@ def get_model(config):
         if config.get('freeze_encoder', False):
             for param in model.base_model.parameters():
                 param.requires_grad = False
+        return model
 
     for obj in globals().values():
         if isinstance(obj, type) and issubclass(obj, nn.Module) and hasattr(obj, 'name') and obj.name == config.model_name:
