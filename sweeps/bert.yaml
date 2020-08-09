@@ -21,10 +21,12 @@ parameters:
   max_seq_length:
     value: 300
   max_train_size:
-    value: 1000000
+    value: 10000
   max_val_size:
-    value: 1000000
+    value: 10000
   lr:
     value: 0.00005
+  learning_rate_decay_schedule:
+    value: 'linear'
   freeze_encoder:
     value: True
