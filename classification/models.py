@@ -46,7 +46,10 @@ class SimpleModel(nn.Module):
 def get_model(config):
 
     if 'bert' in config.model_name:
-        return BertForSequenceClassification.from_pretrained(config.model_name)
+        model = BertForSequenceClassification.from_pretrained(config.model_name)
+        if config.get('freeze_encoder', False):
+            for param in model.base_model.parameters():
+                param.requires_grad = False
 
     for obj in globals().values():
         if isinstance(obj, type) and issubclass(obj, nn.Module) and hasattr(obj, 'name') and obj.name == config.model_name:
