@@ -26,3 +26,5 @@ parameters:
     value: 1000000
   lr:
     value: 0.00005
+  freeze_encoder:
+    value: True
