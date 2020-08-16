@@ -46,7 +46,13 @@ class SimpleModel(nn.Module):
 def get_model(config):
 
     if 'bert' in config.model_name:
-        model = BertForSequenceClassification.from_pretrained(config.model_name)
+        if config.model_name == 'bert-base-uncased':
+            model = BertForSequenceClassification.from_pretrained(config.model_name)
+        elif config.model_name == 'distilbert-base-uncased':
+            model = DistilBertForSequenceClassification.from_pretrained(config.model_name)
+        else:
+            raise ValueError()
+
         if config.get('freeze_encoder', False):
             for param in model.base_model.parameters():
                 param.requires_grad = False

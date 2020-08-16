@@ -1,8 +1,10 @@
-from transformers import BertTokenizer
+from transformers import BertTokenizer, DistilBertTokenizer
 
 
 def get_tokenizer(config):
-    if 'bert' in config.tokenizer:
-        return BertTokenizer.from_pretrained(
-            config.tokenizer,
-            do_lower_case='uncased' in config.tokenizer)
+    if config.tokenizer == 'bert-base-uncased' in config.tokenizer:
+        return BertTokenizer.from_pretrained(config.tokenizer)
+    elif config.tokenizer == 'distilbert-base-uncased' in config.tokenizer:
+        return DistilBertTokenizer.from_pretrained(config.tokenizer)
+    else:
+        raise ValueError()
