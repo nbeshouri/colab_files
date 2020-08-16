@@ -41,6 +41,12 @@ def run_model_on_dataset(model, dataloader, config, optimizer=None, scheduler=No
             "token_type_ids": batch[2],
             "labels": batch[3]
         }
+
+        # Not all models will take all args.
+        inputs = {
+            k: v for k, v in inputs.items()
+            if k in model.forward.__code__.co_varnames}
+
         outputs = model(**inputs)
         loss, logits = outputs[:2]  # See BertForSequenceClassification.forward
         total_loss += loss.item() * len(batch[0])  # Convert from mean to sum.

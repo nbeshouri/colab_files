@@ -5,13 +5,13 @@ metric:
   name: auc
 parameters:
   undersample:
-    value: True
+    value: False
   tokenizer:
-    value: 'distilbert-base-cased'
+    value: 'distilbert-base-uncased'
   dataset:
     value: 'wikipedia_comments'
   model_name:
-    value: 'distilbert-base-cased'
+    value: 'distilbert-base-uncased'
   optimizer:
     value: 'adam'
   epochs:
@@ -21,9 +21,9 @@ parameters:
   max_seq_length:
     value: 300
   max_train_size:
-    value: 10000
+    value: 1000000
   max_val_size:
-    value: 10000
+    value: 1000000
   lr:
     value: 0.00005
   learning_rate_decay_schedule:
