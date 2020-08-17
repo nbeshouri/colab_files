@@ -25,7 +25,7 @@ parameters:
   max_val_size:
     value: 1000000
   lr:
-    value: 0.00005
+    values: [0.00005, 0.00001, 0.0001, 0.000005]
   learning_rate_decay_schedule:
     value: 'linear'
   freeze_encoder:
