@@ -34,7 +34,7 @@ def run_model_on_dataset(model, dataloader, config, optimizer=None, scheduler=No
         inputs = {
             "input_ids": batch[0],
             "attention_mask": batch[1],
-            # "token_type_ids": batch[2],
+            "token_type_ids": batch[2],
             "labels": batch[3]
         }
         outputs = model(**inputs)
@@ -108,6 +108,8 @@ def train(config, wb_project=None):
         with Timer() as val_timer:
             val_preds, val_label_ids, val_loss = eval_on_dataset(model, data.val, config)
 
+        # TODO: I think this should go inside eval_on_dataset... which maybe
+        # take some kinda data eval function.
         if wb_project is not None:
             log_dict = {
                 'train_accuracy': accuracy_score(train_label_ids, train_preds),

@@ -29,4 +29,4 @@ parameters:
   learning_rate_decay_schedule:
     value: 'linear'
   freeze_encoder:
-    value: [False, True]
+    values: [False, True]
