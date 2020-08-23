@@ -30,6 +30,7 @@ class Timer:
 def run_model_on_dataset(model, dataloader, config, optimizer=None, scheduler=None):
     total_loss = 0
     preds = []
+    logits = []
     label_ids = []
 
     for i, batch in enumerate(dataloader):
@@ -48,7 +49,7 @@ def run_model_on_dataset(model, dataloader, config, optimizer=None, scheduler=No
             if k in model.forward.__code__.co_varnames}
 
         outputs = model(**inputs)
-        loss, logits = outputs[:2]  # See BertForSequenceClassification.forward
+        loss, batch_logits = outputs[:2]  # See BertForSequenceClassification.forward
         total_loss += loss.item() * len(batch[0])  # Convert from mean to sum.
 
         if model.training:
@@ -58,10 +59,14 @@ def run_model_on_dataset(model, dataloader, config, optimizer=None, scheduler=No
             if scheduler is not None:
                 scheduler.step()
 
-        preds.extend(np.argmax(logits.detach().cpu().numpy(), axis=1))
+        batch_logits = batch_logits.detach().cpu().numpy()
+        logits.append(batch_logits)
+        preds.extend(np.argmax(batch_logits, axis=1))
         label_ids.extend(inputs["labels"].detach().cpu().numpy())
 
-    return preds, label_ids, total_loss / len(dataloader.dataset)
+    logits = np.concatenate(logits, axis=0)
+
+    return logits, preds, label_ids, total_loss / len(dataloader.dataset)
 
 
 def train_on_dataset(model, dataset, config):
@@ -106,24 +111,24 @@ def train(config):
     for epoch in range(config.epochs + 1):
         with Timer() as train_timer:
             if epoch == 0:
-                train_preds, train_label_ids, train_loss = eval_on_dataset(model, data.train, config)
+                train_logits, train_preds, train_label_ids, train_loss = eval_on_dataset(model, data.train, config)
             else:
-                train_preds, train_label_ids, train_loss = train_on_dataset(model, data.train, config)
+                train_logits, train_preds, train_label_ids, train_loss = train_on_dataset(model, data.train, config)
         with Timer() as val_timer:
-            val_preds, val_label_ids, val_loss = eval_on_dataset(model, data.val, config)
+            val_logits, val_preds, val_label_ids, val_loss = eval_on_dataset(model, data.val, config)
 
         log_dict = {
             'train_accuracy': accuracy_score(train_label_ids, train_preds),
             'train_accuracy_weighted': weighted_accuracy_score(train_label_ids, train_preds),
             'train_loss': train_loss,
             'train_examples_per_second': len(data.train) / train_timer.interval,
-            'train_auc': roc_auc_score(train_label_ids, train_preds),
+            'train_auc': roc_auc_score(train_label_ids, train_logits[:, 1]),
 
             'val_accuracy': accuracy_score(val_label_ids, val_preds),
             'val_accuracy_weighted': weighted_accuracy_score(val_label_ids, val_preds),
             'val_loss': val_loss,
             'val_examples_per_second': len(data.train) / val_timer.interval,
-            'val_auc': roc_auc_score(val_label_ids, val_preds),
+            'val_auc': roc_auc_score(val_label_ids, val_logits[:, 1]),
 
             'train_preds_match': int(last_train_preds is None or tuple(train_preds) == last_train_preds),
             'train_preds_count': len(train_preds),
