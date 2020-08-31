@@ -5,7 +5,7 @@ TOKENIZERS = {
     'bert-base-uncased': BertTokenizer,
     'gpt2': GPT2Tokenizer,
     'xlnet-base-cased': XLNetTokenizer,
-    'distilbert-base-cased': DistilBertTokenizer,
+    'distilbert-base-ucased': DistilBertTokenizer,
     'simple_rnn': BertTokenizer
 }
 
