@@ -42,7 +42,7 @@ MODELS = {
 def get_model(config):
     if config.model_name not in MODELS:
         raise ValueError()
-    model_class = MODELS['tokenizer']
+    model_class = MODELS[config.model_name]
 
     if hasattr(model_class, 'from_pretrained'):
         model = model_class.from_pretrained(config.model_name)
