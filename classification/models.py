@@ -34,7 +34,7 @@ MODELS = {
     'bert-base-uncased': BertModel,
     'gpt2': GPT2Model,
     'xlnet-base-cased': XLNetModel,
-    'distilbert-base-cased': DistilBertModel,
+    'distilbert-base-uncased': DistilBertModel,
     'simple_rnn': SimpleModel
 }
 
