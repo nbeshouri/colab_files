@@ -1,0 +1,32 @@
+program: train.py
+method: grid
+metric:
+  goal: minimize
+  name: val_auc
+parameters:
+  undersample:
+    value: False
+  tokenizer:
+    value: 'gpt2'
+  dataset:
+    value: 'wikipedia_comments'
+  model_name:
+    value: 'gpt2'
+  optimizer:
+    value: 'adam'
+  epochs:
+    value: 3
+  batch_size:
+    value: 8
+  max_seq_length:
+    value: 500
+  max_train_size:
+    value: 1000000
+  max_val_size:
+    value: 1000000
+  lr:
+    values: [0.00001, 0.00005, 0.000005]
+  learning_rate_decay_schedule:
+    value: 'linear'
+  freeze_encoder:
+    values: [False, True]

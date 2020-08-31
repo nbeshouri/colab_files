@@ -1,21 +1,8 @@
 import torch
-from torch.optim.adam import Adam
-from torch.optim import RMSprop
 import wandb
 import torch.nn as nn
 import torch.nn.functional as F
 from transformers import *
-
-from torch.utils.data import TensorDataset, DataLoader, RandomSampler
-
-import numpy as np
-import pandas as pd
-import matplotlib as mpl
-from sklearn.metrics import accuracy_score
-from sklearn.utils import Bunch
-from matplotlib import pyplot as plt
-import seaborn as sns; sns.set()
-from time import time
 
 
 class SimpleModel(nn.Module):
@@ -43,21 +30,23 @@ class SimpleModel(nn.Module):
         return output
 
 
+MODELS = {
+    'bert-base-uncased': BertModel,
+    'gpt2': GPT2Model,
+    'xlnet-base-cased': XLNetModel,
+    'distilbert-base-cased': DistilBertModel,
+    'simple_rnn': SimpleModel
+}
+
+
 def get_model(config):
+    if config.model_name not in MODELS:
+        raise ValueError()
+    model_class = MODELS['tokenizer']
 
-    if 'bert' in config.model_name:
-        if config.model_name == 'bert-base-uncased':
-            model = BertForSequenceClassification.from_pretrained(config.model_name)
-        elif config.model_name == 'distilbert-base-uncased':
-            model = DistilBertForSequenceClassification.from_pretrained(config.model_name)
-        else:
-            raise ValueError()
+    if hasattr(model_class, 'from_pretrained'):
+        model = model_class.from_pretrained(config.model_name)
+    else:
+        model = model_class(config)
 
-        if config.get('freeze_encoder', False):
-            for param in model.base_model.parameters():
-                param.requires_grad = False
-        return model
-
-    for obj in globals().values():
-        if isinstance(obj, type) and issubclass(obj, nn.Module) and hasattr(obj, 'name') and obj.name == config.model_name:
-            return obj(config)
+    return model
