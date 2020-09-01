@@ -31,10 +31,9 @@ class SimpleModel(nn.Module):
 
 
 MODELS = {
-    'bert-base-uncased': BertModel,
-    'gpt2': GPT2Model,
-    'xlnet-base-cased': XLNetModel,
-    'distilbert-base-uncased': DistilBertModel,
+    'bert-base-uncased': BertForSequenceClassification,
+    'xlnet-base-cased': XLMForSequenceClassification,
+    'distilbert-base-uncased': DistilBertForSequenceClassification,
     'simple_rnn': SimpleModel
 }
 

@@ -3,7 +3,6 @@ from transformers import *
 
 TOKENIZERS = {
     'bert-base-uncased': BertTokenizer,
-    'gpt2': GPT2Tokenizer,
     'xlnet-base-cased': XLNetTokenizer,
     'distilbert-base-uncased': DistilBertTokenizer,
     'simple_rnn': BertTokenizer
