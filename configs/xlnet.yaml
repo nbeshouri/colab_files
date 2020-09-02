@@ -11,12 +11,12 @@ optimizer:
 epochs:
   value: 4
 batch_size:
-  value: 8
+  value: 4
 max_seq_length:
   value: 300
 max_train_size:
-  value: 100
+  value: 1000000
 max_val_size:
-  value: 100
+  value: 1000000
 lr:
-  value: 0.000005
+  value: 0.00005
