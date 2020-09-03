@@ -108,12 +108,9 @@ def train(config):
 
     last_train_preds = None
 
-    for epoch in range(config.epochs + 1):
+    for epoch in range(1, config.epochs + 1):
         with Timer() as train_timer:
-            if epoch == 0:
-                train_logits, train_preds, train_label_ids, train_loss = eval_on_dataset(model, data.train, config)
-            else:
-                train_logits, train_preds, train_label_ids, train_loss = train_on_dataset(model, data.train, config)
+            train_logits, train_preds, train_label_ids, train_loss = train_on_dataset(model, data.train, config)
         with Timer() as val_timer:
             val_logits, val_preds, val_label_ids, val_loss = eval_on_dataset(model, data.val, config)
 
