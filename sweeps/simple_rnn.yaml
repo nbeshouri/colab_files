@@ -17,7 +17,7 @@ parameters:
   epochs:
     value: 20
   batch_size:
-    value: [8, 32, 128]
+    values: [8, 32, 128]
   max_seq_length:
     value: 500
   max_train_size:
@@ -25,6 +25,8 @@ parameters:
   max_val_size:
     value: 10000
   lr:
-    value: [0.001, 0.01, 0.1]
+    values: [0.001, 0.01, 0.1]
   log:
     value: 'all'
+  learning_rate_decay_schedule:
+    values: [null, 'linear']
