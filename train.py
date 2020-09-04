@@ -102,8 +102,8 @@ def eval_on_dataset(model, dataset, config):
 
 def train(config):
     model = models.get_model(config)
-    if 'log' in config:
-        wandb.watch(model, config.log)
+    if config.get('log') is not None:
+        wandb.watch(model, log=config.get('log'))
     data = datasets.get_dataset(config)
     device = torch.device(config.device)
     model.to(device)
