@@ -41,7 +41,7 @@ MODELS = {
 def get_model(config):
 
     try:
-        return AutoModelWithLMHead.from_pretrained(config.model_name)
+        return AutoModelForSequenceClassification.from_pretrained(config.model_name)
     except OSError:
         pass
 
