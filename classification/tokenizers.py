@@ -10,13 +10,11 @@ TOKENIZERS = {
 
 
 def get_tokenizer(config):
-    if config.tokenizer not in TOKENIZERS:
-        raise ValueError()
-    tokenizer_class = TOKENIZERS[config.tokenizer]
 
-    if hasattr(tokenizer_class, 'from_pretrained'):
-        tokenizer = tokenizer_class.from_pretrained(config.tokenizer)
-    else:
-        tokenizer = tokenizer_class(config)
+    try:
+        return AutoTokenizer.from_pretrained(config.model_name)
+    except OSError:
+        pass
 
-    return tokenizer
+    tokenizer = TOKENIZERS[config.model_name]
+    return tokenizer(config)
