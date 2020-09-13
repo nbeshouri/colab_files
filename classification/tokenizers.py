@@ -12,9 +12,9 @@ TOKENIZERS = {
 def get_tokenizer(config):
 
     try:
-        return AutoTokenizer.from_pretrained(config.model_name)
+        return AutoTokenizer.from_pretrained(config.tokenizer)
     except OSError:
         pass
 
-    tokenizer = TOKENIZERS[config.model_name]
+    tokenizer = TOKENIZERS[config.tokenizer]
     return tokenizer(config)

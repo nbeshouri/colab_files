@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import accuracy_score, roc_auc_score
 import seaborn as sns; sns.set()
-from time import time
+from time import time, perf_counter
 from classification import models, datasets, tokenizers
 
 
@@ -27,11 +27,12 @@ class Timer:
         self.interval = self.end - self.start
 
 
-def run_model_on_dataset(model, dataloader, config, optimizer=None, scheduler=None):
+def run_model_on_dataset(model, dataloader, config, yield_freq=None, optimizer=None, scheduler=None):
     total_loss = 0
     preds = []
     logits = []
     label_ids = []
+    batches_since_yield = 0
 
     for i, batch in enumerate(dataloader):
         device = torch.device(config.device)
@@ -63,15 +64,27 @@ def run_model_on_dataset(model, dataloader, config, optimizer=None, scheduler=No
         logits.append(batch_logits)
         preds.extend(np.argmax(batch_logits, axis=1))
         label_ids.extend(inputs["labels"].detach().cpu().numpy())
+        batches_since_yield += 1
 
-    logits = np.concatenate(logits, axis=0)
+        if i == len(dataloader) - 1 or yield_freq is not None and (i + 1) % yield_freq == 0:
+            logits = np.concatenate(logits, axis=0)
+            yield logits, preds, label_ids, total_loss / batches_since_yield
+            total_loss = 0
+            preds = []
+            logits = []
+            label_ids = []
+            batches_since_yield = 0
 
-    return logits, preds, label_ids, total_loss / len(dataloader.dataset)
+    # # There could be nothing left to yield here if the yield_freq
+    # # is a whole multiple the length of the dataset
+    # if logits:
+    #     logits = np.concatenate(logits, axis=0)
+    #     yield logits, preds, label_ids, total_loss / batches_since_yield
 
 
-def train_on_dataset(model, dataset, config):
+def train_on_dataset(model, train_dataset, val_datasets, config):
     model.train()
-    dataloader = DataLoader(dataset, shuffle=True, batch_size=config.batch_size, pin_memory=True)
+    dataloader = DataLoader(train_dataset, shuffle=True, batch_size=config.batch_size, pin_memory=True)
 
     if config.optimizer == 'adam':
         optimizer = Adam(model.parameters(), lr=config.lr)
@@ -90,14 +103,34 @@ def train_on_dataset(model, dataset, config):
         else:
             raise ValueError(f'"{config.optimizer}" is an invalid optimizer name!')
 
-    return run_model_on_dataset(model, dataloader, config, optimizer=optimizer, scheduler=scheduler)
+    mini_batch_start_time = perf_counter()
+    for logits, preds, label_ids, loss in run_model_on_dataset(
+            model, dataloader, config, yield_freq=config.get('log_freq'), optimizer=optimizer, scheduler=scheduler):
+        log_run(
+            run_type='train',
+            logits=logits,
+            preds=preds,
+            label_ids=label_ids,
+            loss=loss,
+            runtime=perf_counter() - mini_batch_start_time)
+        for val_dataset_name, val_dataset in val_datasets.items():
+            validate_on_dataset(model, val_dataset, val_dataset_name, config)
+        mini_batch_start_time = perf_counter()
 
 
-def eval_on_dataset(model, dataset, config):
+def validate_on_dataset(model, dataset, dataset_name, config):
     model.eval()
     dataloader = DataLoader(dataset, shuffle=False, batch_size=config.batch_size, pin_memory=True)
     with torch.no_grad():
-        return run_model_on_dataset(model, dataloader, config)
+        start_time = perf_counter()
+        logits, preds, label_ids, loss = iter(next(run_model_on_dataset(model, dataloader, config, yield_freq=None)))
+        log_run(
+            run_type=dataset_name,
+            logits=logits,
+            preds=preds,
+            label_ids=label_ids,
+            loss=loss,
+            runtime=perf_counter() - start_time)
 
 
 def train(config):
@@ -108,34 +141,8 @@ def train(config):
     device = torch.device(config.device)
     model.to(device)
 
-    last_train_preds = None
-
     for epoch in range(1, config.epochs + 1):
-        with Timer() as train_timer:
-            train_logits, train_preds, train_label_ids, train_loss = train_on_dataset(model, data.train, config)
-        with Timer() as val_timer:
-            val_logits, val_preds, val_label_ids, val_loss = eval_on_dataset(model, data.val, config)
-
-        log_dict = {
-            'train_accuracy': accuracy_score(train_label_ids, train_preds),
-            'train_accuracy_weighted': weighted_accuracy_score(train_label_ids, train_preds),
-            'train_loss': train_loss,
-            'train_examples_per_second': len(data.train) / train_timer.interval,
-            'train_auc': roc_auc_score(train_label_ids, train_logits[:, 1]),
-
-            'val_accuracy': accuracy_score(val_label_ids, val_preds),
-            'val_accuracy_weighted': weighted_accuracy_score(val_label_ids, val_preds),
-            'val_loss': val_loss,
-            'val_examples_per_second': len(data.train) / val_timer.interval,
-            'val_auc': roc_auc_score(val_label_ids, val_logits[:, 1]),
-
-            'train_preds_match': int(last_train_preds is None or tuple(train_preds) == last_train_preds),
-            'train_preds_count': len(train_preds),
-            'train_preds_mean': np.average(train_preds)
-        }
-        wandb.log(log_dict)
-        print(log_dict)
-        last_train_preds = tuple(train_preds)
+        train_on_dataset(model, data.train, {'val': data.val}, config)
 
 
 def weighted_accuracy_score(y_true, y_pred):
@@ -144,6 +151,20 @@ def weighted_accuracy_score(y_true, y_pred):
 
     sample_weights = [class_to_weight[c] for c in y_true]
     return accuracy_score(y_true, y_pred, sample_weight=sample_weights)
+
+
+def log_run(run_type, logits, preds, label_ids, loss, runtime):
+    log_dict = {
+        'accuracy': accuracy_score(label_ids, preds),
+        'accuracy_weighted': weighted_accuracy_score(label_ids, preds),
+        'loss': loss,
+        'examples_per_second': len(preds) / runtime,
+        'auc': roc_auc_score(label_ids, logits[:, 1]),
+        'sample_size': len(preds)
+    }
+    log_dict = {f'{run_type}_{k}': v for k, v in log_dict.items()}
+    print(log_dict)
+    wandb.log(log_dict)
 
 
 if __name__ == '__main__':

@@ -9,14 +9,21 @@ model_name:
 optimizer:
   value: 'rmsprop'
 epochs:
-  value: 20
+  value: 2
 batch_size:
   value: 8
 max_seq_length:
-  value: 300
+  value: 100
 max_train_size:
-  value: 100
+  value: 24
 max_val_size:
-  value: 100
+  value: 24
 lr:
   value: 0.01
+log:
+  value: null
+learning_rate_decay_schedule:
+  value: null
+log_freq:
+  value: 1
+

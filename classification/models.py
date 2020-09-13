@@ -31,9 +31,6 @@ class SimpleModel(nn.Module):
 
 
 MODELS = {
-    'bert-base-uncased': BertForSequenceClassification,
-    'xlnet-base-cased': XLMForSequenceClassification,
-    'distilbert-base-uncased': DistilBertForSequenceClassification,
     'simple_rnn': SimpleModel
 }
 
