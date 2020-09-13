@@ -2,7 +2,7 @@ program: train.py
 method: grid
 metric:
   goal: minimize
-  name: auc
+  name: val_auc
 parameters:
   undersample:
     value: False
@@ -19,14 +19,14 @@ parameters:
   batch_size:
     value: 8
   max_seq_length:
-    value: 300
+    value: 500
   max_train_size:
-    value: 10000
+    value: 1000000
   max_val_size:
-    value: 10000
+    value: 1000000
   lr:
-    value: 0.00005
+    values: [0.00001, 0.00005, 0.000005]
   learning_rate_decay_schedule:
     value: 'linear'
   freeze_encoder:
-    value: True
+    values: [False, True]
