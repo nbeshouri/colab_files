@@ -7,11 +7,11 @@ parameters:
   undersample:
     value: False
   tokenizer:
-    value: 'distilbert-base-uncased'
+    value: 'distilbert-base-cased'
   dataset:
     value: 'wikipedia_comments'
   model_name:
-    value: 'distilbert-base-uncased'
+    value: 'distilbert-base-cased'
   optimizer:
     value: 'adam'
   epochs:
