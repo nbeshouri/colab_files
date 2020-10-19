@@ -2,10 +2,10 @@ from transformers import *
 
 
 TOKENIZERS = {
-    'bert-base-uncased': BertTokenizer,
-    'xlnet-base-cased': XLNetTokenizer,
-    'distilbert-base-uncased': DistilBertTokenizer,
-    'simple_rnn': BertTokenizer
+    "bert-base-uncased": BertTokenizer,
+    "xlnet-base-cased": XLNetTokenizer,
+    "distilbert-base-uncased": DistilBertTokenizer,
+    "simple_rnn": BertTokenizer,
 }
 
 

@@ -8,12 +8,19 @@ from . import DATA_DIR_PATH, tokenizers
 def prepare_tensor_dataset(texts, class_ids, max_seq_length, tokenizer):
     """Convert a sequence of texts and labels to a dataset."""
 
-    class_ids = list(class_ids)  # HACK: Some how the fact that this one is a series breaks shit.
+    class_ids = list(
+        class_ids
+    )  # HACK: Some how the fact that this one is a series breaks shit.
 
     def pad_seqs(seqs):
         return [seq + ((max_seq_length - len(seq)) * [0]) for seq in seqs]
 
-    token_ids_seqs = [tokenizer.encode(t, add_special_tokens=True, max_length=max_seq_length, truncation=True) for t in texts]
+    token_ids_seqs = [
+        tokenizer.encode(
+            t, add_special_tokens=True, max_length=max_seq_length, truncation=True
+        )
+        for t in texts
+    ]
 
     att_masks = [[1] * len(ts) for ts in token_ids_seqs]
     token_type_id_seqs = [[0] * len(ts) for ts in token_ids_seqs]
@@ -31,10 +38,14 @@ def under_sample(data_df, class_col, random_state=42):
     count = value_counts.min()
     df_parts = []
     for class_i in value_counts.index:
-        df_parts.append(data_df[data_df[class_col] == class_i].sample(
-            count, random_state=random_state))
+        df_parts.append(
+            data_df[data_df[class_col] == class_i].sample(
+                count, random_state=random_state
+            )
+        )
     sample_df = pd.concat(df_parts, axis=0)
     return sample_df.sample(sample_df.shape[0], random_state=42)
+
 
 # def load_dataset(dataset_name, version, tokenizer, max_length):
 #     if dataset_name == 'wikipedia_comments':
@@ -71,54 +82,75 @@ class Datasets:
 
 class WikiCommentsDatasets(Datasets):
 
-    name = 'wikipedia_comments'
+    name = "wikipedia_comments"
 
     def __init__(self, tokenizer, config):
-        train_df = pd.read_csv(os.path.join(DATA_DIR_PATH, 'datasets', 'wikipedia_comments', 'train.csv.zip'))
-        test_df = pd.read_csv(os.path.join(DATA_DIR_PATH, 'datasets', 'wikipedia_comments', 'test.csv.zip'))
-        test_labels_df = pd.read_csv(os.path.join(DATA_DIR_PATH, 'datasets', 'wikipedia_comments', 'test_labels.csv.zip'))
+        train_df = pd.read_csv(
+            os.path.join(
+                DATA_DIR_PATH, "datasets", "wikipedia_comments", "train.csv.zip"
+            )
+        )
+        test_df = pd.read_csv(
+            os.path.join(
+                DATA_DIR_PATH, "datasets", "wikipedia_comments", "test.csv.zip"
+            )
+        )
+        test_labels_df = pd.read_csv(
+            os.path.join(
+                DATA_DIR_PATH, "datasets", "wikipedia_comments", "test_labels.csv.zip"
+            )
+        )
         test_df = pd.merge(test_df, test_labels_df)
-        test_df = test_df.query('toxic != -1')
+        test_df = test_df.query("toxic != -1")
 
-        if config.get('undersample', False):
-            train_df = under_sample(train_df, class_col='toxic')
-            test_df = under_sample(test_df, class_col='toxic')
+        if config.get("undersample", False):
+            train_df = under_sample(train_df, class_col="toxic")
+            test_df = under_sample(test_df, class_col="toxic")
 
         self.train = prepare_tensor_dataset(
-            texts=train_df.comment_text[:config.max_train_size],
-            class_ids=train_df.toxic[:config.max_train_size],
+            texts=train_df.comment_text[: config.max_train_size],
+            class_ids=train_df.toxic[: config.max_train_size],
             max_seq_length=config.max_seq_length,
-            tokenizer=tokenizer)
+            tokenizer=tokenizer,
+        )
         self.val = prepare_tensor_dataset(
-            texts=test_df.comment_text[:config.max_val_size],
-            class_ids=test_df.toxic[:config.max_val_size],
+            texts=test_df.comment_text[: config.max_val_size],
+            class_ids=test_df.toxic[: config.max_val_size],
             max_seq_length=config.max_seq_length,
-            tokenizer=tokenizer)
+            tokenizer=tokenizer,
+        )
 
 
 class NewsgroupDatasets(Datasets):
 
-    name = 'newsgroups'
+    name = "newsgroups"
 
     def __init__(self, tokenizer, config):
         from sklearn.datasets import fetch_20newsgroups
-        cats = ['alt.atheism', 'sci.space']
-        newsgroups_train = fetch_20newsgroups(subset='train', categories=cats)
-        newsgroups_test = fetch_20newsgroups(subset='test', categories=cats)
+
+        cats = ["alt.atheism", "sci.space"]
+        newsgroups_train = fetch_20newsgroups(subset="train", categories=cats)
+        newsgroups_test = fetch_20newsgroups(subset="test", categories=cats)
         self.train = prepare_tensor_dataset(
-            texts=newsgroups_train.data[:config.max_train_size],
-            class_ids=newsgroups_train.target[:config.max_train_size],
+            texts=newsgroups_train.data[: config.max_train_size],
+            class_ids=newsgroups_train.target[: config.max_train_size],
             max_seq_length=config.max_seq_length,
-            tokenizer=tokenizer)
+            tokenizer=tokenizer,
+        )
         self.val = prepare_tensor_dataset(
-            texts=newsgroups_test.data[:config.max_val_size],
-            class_ids=newsgroups_test.target[:config.max_val_size],
+            texts=newsgroups_test.data[: config.max_val_size],
+            class_ids=newsgroups_test.target[: config.max_val_size],
             max_seq_length=config.max_seq_length,
-            tokenizer=tokenizer)
+            tokenizer=tokenizer,
+        )
 
 
 def get_dataset(config):
     tokenizer = tokenizers.get_tokenizer(config)
     for obj in globals().values():
-        if isinstance(obj, type) and issubclass(obj, Datasets) and obj.name == config.dataset:
+        if (
+            isinstance(obj, type)
+            and issubclass(obj, Datasets)
+            and obj.name == config.dataset
+        ):
             return obj(tokenizer, config)

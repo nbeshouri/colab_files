@@ -5,7 +5,7 @@ import sys
 
 PACKAGE_DIR = os.path.dirname(__file__)
 CONTAINING_DIR = os.path.split(PACKAGE_DIR)[0]
-DATA_DIR_PATH = os.path.join(PACKAGE_DIR, 'data')
+DATA_DIR_PATH = os.path.join(PACKAGE_DIR, "data")
 
 
 def _setup_logger():
@@ -21,5 +21,3 @@ def _setup_logger():
 
 
 logger = _setup_logger()
-
-

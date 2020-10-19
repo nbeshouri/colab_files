@@ -7,7 +7,7 @@ from transformers import *
 
 class SimpleModel(nn.Module):
 
-    name = 'simple_rnn'
+    name = "simple_rnn"
 
     def __init__(self, config):
         super().__init__()
@@ -15,7 +15,9 @@ class SimpleModel(nn.Module):
         self.rnn = nn.LSTM(768, 768, batch_first=True)
         self.classifier = nn.Linear(768, 2)
 
-    def forward(self, input_ids=None, attention_mask=None, token_type_ids=None, labels=None):
+    def forward(
+        self, input_ids=None, attention_mask=None, token_type_ids=None, labels=None
+    ):
         x = self.embbeding(input_ids)
         x, _ = self.rnn(x)
         logits = self.classifier(x[:, -1])
@@ -30,9 +32,7 @@ class SimpleModel(nn.Module):
         return output
 
 
-MODELS = {
-    'simple_rnn': SimpleModel
-}
+MODELS = {"simple_rnn": SimpleModel}
 
 
 def get_model(config):
