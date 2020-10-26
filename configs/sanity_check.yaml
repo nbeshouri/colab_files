@@ -1,3 +1,4 @@
+wandb_version: 1
 undersample:
   value: True
 tokenizer:
@@ -9,7 +10,7 @@ model_name:
 optimizer:
   value: 'rmsprop'
 epochs:
-  value: 2
+  value: 20
 batch_size:
   value: 8
 max_seq_length:
@@ -25,5 +26,6 @@ log:
 learning_rate_decay_schedule:
   value: null
 log_freq:
-  value: 1
-
+  value: null
+checkpoint_metric:
+  value: 'auc'

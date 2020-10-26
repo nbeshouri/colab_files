@@ -178,7 +178,7 @@ def train(config, run):
     model.to(device)
 
     for epoch in range(1, config.epochs + 1):
-        train_on_dataset(model, data.train, {"val": data.val}, config, run)
+        train_on_dataset(model, data.train, data.val, config, run)
 
 
 def weighted_accuracy_score(y_true, y_pred):
@@ -219,8 +219,17 @@ class ConfigWrapper:
     def __init__(self, config):
         self.config = config
 
+    def get(self, key, default=None):
+        return self.config.get(key, default)
+
     def __getattr__(self, key):
         return self.config.get(key, None)
+
+    def __setattr__(self, key, value):
+        if key == 'config':
+            self.__dict__['config'] = value
+        else:
+            setattr(self.config, key, value)
 
 
 if __name__ == "__main__":
@@ -242,4 +251,4 @@ if __name__ == "__main__":
     else:
         config.device = "cpu"
 
-    train(config)
+    train(config, run)
