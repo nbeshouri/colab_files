@@ -1,6 +1,5 @@
 from transformers import *
 
-
 TOKENIZERS = {
     "bert-base-uncased": BertTokenizer,
     "xlnet-base-cased": XLNetTokenizer,

@@ -1,21 +1,21 @@
-import torch
-from torch.optim.adam import Adam
-from torch.optim import RMSprop
-import wandb
-from torch.utils.data import TensorDataset, DataLoader, RandomSampler
-from transformers import get_linear_schedule_with_warmup
 import argparse
 import os
-import yaml
+from time import perf_counter, sleep, time
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import accuracy_score, roc_auc_score
 import seaborn as sns
+import torch
+import wandb
+import yaml
+from classification import datasets, models, tokenizers
+from sklearn.metrics import accuracy_score, roc_auc_score
+from torch.optim import RMSprop
+from torch.optim.adam import Adam
+from torch.utils.data import DataLoader, RandomSampler, TensorDataset
+from transformers import get_linear_schedule_with_warmup
 
 sns.set()
-from time import time, perf_counter, sleep
-from classification import models, datasets, tokenizers
 
 
 TEMP_WEIGHTS_PATH = "state_dict.pickle"
@@ -121,12 +121,12 @@ def train(config, run):
             data.train, shuffle=True, batch_size=config.batch_size, pin_memory=True
         )
         for logits, preds, label_ids, loss in run_model_on_dataset(
-                model,
-                dataloader,
-                config,
-                yield_freq=config.get("log_freq"),
-                optimizer=optimizer,
-                scheduler=scheduler,
+            model,
+            dataloader,
+            config,
+            yield_freq=config.get("log_freq"),
+            optimizer=optimizer,
+            scheduler=scheduler,
         ):
             train_metrics = compute_metrics(
                 logits=logits,
@@ -145,7 +145,9 @@ def train(config, run):
             with torch.no_grad():
                 start_time = perf_counter()
                 logits, preds, label_ids, loss = iter(
-                    next(run_model_on_dataset(model, dataloader, config, yield_freq=None))
+                    next(
+                        run_model_on_dataset(model, dataloader, config, yield_freq=None)
+                    )
                 )
                 val_metrics = compute_metrics(
                     logits=logits,
@@ -157,8 +159,9 @@ def train(config, run):
                 log_run("val", val_metrics)
 
                 if config.checkpoint_metric is not None:
-                    if (best_performance is None
-                            or val_metrics[config.checkpoint_metric] > best_performance
+                    if (
+                        best_performance is None
+                        or val_metrics[config.checkpoint_metric] > best_performance
                     ):
                         best_performance = val_metrics[config.checkpoint_metric]
                         best_performance_metrics = val_metrics
@@ -174,7 +177,9 @@ def train(config, run):
 
     # Save the best model weights.
     if best_performance is not None:
-        artifact = wandb.Artifact(f"{run.name.replace('-', '_')}_best_weights", type="weights")
+        artifact = wandb.Artifact(
+            f"{run.name.replace('-', '_')}_best_weights", type="weights"
+        )
         artifact.add_file(TEMP_WEIGHTS_PATH)
         run.log_artifact(artifact)
 
@@ -224,8 +229,8 @@ class ConfigWrapper:
         return self.config.get(key, None)
 
     def __setattr__(self, key, value):
-        if key == 'config':
-            self.__dict__['config'] = value
+        if key == "config":
+            self.__dict__["config"] = value
         else:
             setattr(self.config, key, value)
 
