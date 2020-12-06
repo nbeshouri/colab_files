@@ -104,6 +104,10 @@ def train(config, run):
         else:
             raise ValueError(f'"{config.optimizer}" is an invalid optimizer name!')
 
+        dataloader = DataLoader(
+            data.train, shuffle=True, batch_size=config.batch_size, pin_memory=True
+        )
+
         scheduler = None
         if config.get("learning_rate_decay_schedule", None) is not None:
             if config.learning_rate_decay_schedule == "linear":
@@ -117,9 +121,6 @@ def train(config, run):
         model.train()
         mini_batch_start_time = perf_counter()
 
-        dataloader = DataLoader(
-            data.train, shuffle=True, batch_size=config.batch_size, pin_memory=True
-        )
         for logits, preds, label_ids, loss in run_model_on_dataset(
             model,
             dataloader,
