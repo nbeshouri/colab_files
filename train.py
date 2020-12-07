@@ -172,12 +172,12 @@ def train(config, run):
 
             mini_batch_start_time = perf_counter()
 
-    # Relog the best validation metrics because W&B
-    # seems to want to sort by that in sweeps.
-    log_run("val", best_performance_metrics)
+    if config.checkpoint_metric is not None:
+        # Relog the best validation metrics because W&B
+        # seems to want to sort by that in sweeps.
+        log_run("val", best_performance_metrics)
 
-    # Save the best model weights.
-    if best_performance is not None:
+        # Save the best model weights.
         artifact = wandb.Artifact(
             f"{run.name.replace('-', '_')}_best_weights", type="weights"
         )

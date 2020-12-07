@@ -30,3 +30,5 @@ parameters:
     value: 'linear'
   freeze_encoder:
     value: False
+  checkpoint_metric:
+    value: 'auc'
