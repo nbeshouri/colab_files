@@ -96,6 +96,7 @@ def train(config, run):
 
     best_performance = None
     best_performance_metrics = None
+    step = 0
     for epoch in range(1, config.epochs + 1):
         if config.optimizer == "adam":
             optimizer = Adam(model.parameters(), lr=config.lr)
@@ -129,6 +130,7 @@ def train(config, run):
             optimizer=optimizer,
             scheduler=scheduler,
         ):
+            step += 1
             train_metrics = compute_metrics(
                 logits=logits,
                 preds=preds,
@@ -136,7 +138,7 @@ def train(config, run):
                 loss=loss,
                 runtime=perf_counter() - mini_batch_start_time,
             )
-            log_run("train", train_metrics)
+            log_run("train", train_metrics, step=step, epoch=epoch)
 
             # Validate
             model.eval()
@@ -157,7 +159,7 @@ def train(config, run):
                     loss=loss,
                     runtime=perf_counter() - start_time,
                 )
-                log_run("val", val_metrics)
+                log_run("val", val_metrics, step=step, epoch=epoch)
 
                 if config.checkpoint_metric is not None:
                     if (
@@ -196,10 +198,14 @@ def weighted_accuracy_score(y_true, y_pred):
 def log_run(
     run_type,
     metrics,
+    epoch=None,
+    **kwargs,
 ):
     log_dict = {f"{run_type}_{k}": v for k, v in metrics.items()}
+    if epoch is not None:
+        log_dict["epoch"] = epoch
     print(log_dict)
-    wandb.log(log_dict)
+    wandb.log(log_dict, **kwargs)
 
 
 def compute_metrics(
