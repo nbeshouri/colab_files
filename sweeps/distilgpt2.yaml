@@ -18,11 +18,11 @@ parameters:
     value: 3
   batch_size:
     value: 4
-  max_seq_length:
+  seq_length_max:
     value: 500
-  max_train_size:
+  train_size_max:
     value: 1000000
-  max_val_size:
+  val_size_max:
     value: 1000000
   lr:
     values: [0.00001, 0.00005, 0.000005]

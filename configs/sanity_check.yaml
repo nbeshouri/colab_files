@@ -13,11 +13,11 @@ epochs:
   value: 10
 batch_size:
   value: 8
-max_seq_length:
+seq_length_max:
   value: 100
-max_train_size:
+train_size_max:
   value: 24
-max_val_size:
+val_size_max:
   value: 24
 lr:
   value: 0.01

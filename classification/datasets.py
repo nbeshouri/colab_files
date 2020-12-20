@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader, RandomSampler, TensorDataset
 from . import DATA_DIR_PATH, tokenizers
 
 
-def prepare_tensor_dataset(texts, class_ids, max_seq_length, tokenizer):
+def prepare_tensor_dataset(texts, class_ids, seq_length_max, tokenizer):
     """Convert a sequence of texts and labels to a dataset."""
 
     class_ids = list(
@@ -15,11 +15,11 @@ def prepare_tensor_dataset(texts, class_ids, max_seq_length, tokenizer):
     )  # HACK: Some how the fact that this one is a series breaks shit.
 
     def pad_seqs(seqs):
-        return [seq + ((max_seq_length - len(seq)) * [0]) for seq in seqs]
+        return [seq + ((seq_length_max - len(seq)) * [0]) for seq in seqs]
 
     token_ids_seqs = [
         tokenizer.encode(
-            t, add_special_tokens=True, max_length=max_seq_length, truncation=True
+            t, add_special_tokens=True, max_length=seq_length_max, truncation=True
         )
         for t in texts
     ]
@@ -110,15 +110,15 @@ class WikiCommentsDatasets(Datasets):
             test_df = under_sample(test_df, class_col="toxic")
 
         self.train = prepare_tensor_dataset(
-            texts=train_df.comment_text[: config.max_train_size],
-            class_ids=train_df.toxic[: config.max_train_size],
-            max_seq_length=config.max_seq_length,
+            texts=train_df.comment_text[: config.train_size_max],
+            class_ids=train_df.toxic[: config.train_size_max],
+            seq_length_max=config.seq_length_max,
             tokenizer=tokenizer,
         )
         self.val = prepare_tensor_dataset(
-            texts=test_df.comment_text[: config.max_val_size],
-            class_ids=test_df.toxic[: config.max_val_size],
-            max_seq_length=config.max_seq_length,
+            texts=test_df.comment_text[: config.val_size_max],
+            class_ids=test_df.toxic[: config.val_size_max],
+            seq_length_max=config.seq_length_max,
             tokenizer=tokenizer,
         )
 
@@ -134,15 +134,15 @@ class NewsgroupDatasets(Datasets):
         newsgroups_train = fetch_20newsgroups(subset="train", categories=cats)
         newsgroups_test = fetch_20newsgroups(subset="test", categories=cats)
         self.train = prepare_tensor_dataset(
-            texts=newsgroups_train.data[: config.max_train_size],
-            class_ids=newsgroups_train.target[: config.max_train_size],
-            max_seq_length=config.max_seq_length,
+            texts=newsgroups_train.data[: config.train_size_max],
+            class_ids=newsgroups_train.target[: config.train_size_max],
+            seq_length_max=config.seq_length_max,
             tokenizer=tokenizer,
         )
         self.val = prepare_tensor_dataset(
-            texts=newsgroups_test.data[: config.max_val_size],
-            class_ids=newsgroups_test.target[: config.max_val_size],
-            max_seq_length=config.max_seq_length,
+            texts=newsgroups_test.data[: config.val_size_max],
+            class_ids=newsgroups_test.target[: config.val_size_max],
+            seq_length_max=config.seq_length_max,
             tokenizer=tokenizer,
         )
 

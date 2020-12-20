@@ -95,6 +95,9 @@ def train(config, run):
     device = torch.device(config.device)
     model.to(device)
 
+    config.train_size = len(data.train)
+    config.val_size = len(data.val)
+
     best_performance = None
     step = 0
     for epoch in range(1, config.epochs + 1):
