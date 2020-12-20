@@ -10,7 +10,7 @@ model_name:
 optimizer:
   value: 'rmsprop'
 epochs:
-  value: 20
+  value: 10
 batch_size:
   value: 8
 max_seq_length:

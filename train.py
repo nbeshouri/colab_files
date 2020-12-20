@@ -1,19 +1,20 @@
 import argparse
 import os
-from time import perf_counter, sleep, time
+from collections import defaultdict
+from time import perf_counter, time
 
 import numpy as np
 import pandas as pd
 import seaborn as sns
 import torch
 import wandb
-import yaml
-from classification import datasets, models, tokenizers
 from sklearn.metrics import accuracy_score, roc_auc_score
 from torch.optim import RMSprop
 from torch.optim.adam import Adam
-from torch.utils.data import DataLoader, RandomSampler, TensorDataset
+from torch.utils.data import DataLoader
 from transformers import get_linear_schedule_with_warmup
+
+from classification import datasets, models
 
 sns.set()
 
@@ -95,7 +96,6 @@ def train(config, run):
     model.to(device)
 
     best_performance = None
-    best_performance_metrics = None
     step = 0
     for epoch in range(1, config.epochs + 1):
         if config.optimizer == "adam":
@@ -138,7 +138,7 @@ def train(config, run):
                 loss=loss,
                 runtime=perf_counter() - mini_batch_start_time,
             )
-            log_run("train", train_metrics, step=step, epoch=epoch)
+            log_step("train", train_metrics, step=step, epoch=epoch)
 
             # Validate
             model.eval()
@@ -159,7 +159,8 @@ def train(config, run):
                     loss=loss,
                     runtime=perf_counter() - start_time,
                 )
-                log_run("val", val_metrics, step=step, epoch=epoch)
+                log_step("val", val_metrics, step=step, epoch=epoch)
+                log_summary("val")
 
                 if config.checkpoint_metric is not None:
                     if (
@@ -167,7 +168,6 @@ def train(config, run):
                         or val_metrics[config.checkpoint_metric] > best_performance
                     ):
                         best_performance = val_metrics[config.checkpoint_metric]
-                        best_performance_metrics = val_metrics
                         torch.save(model.state_dict(), TEMP_WEIGHTS_PATH)
 
             model.train()  # Need to re-enter training model.
@@ -175,10 +175,6 @@ def train(config, run):
             mini_batch_start_time = perf_counter()
 
     if config.checkpoint_metric is not None:
-        # Relog the best validation metrics because W&B
-        # seems to want to sort by that in sweeps.
-        log_run("val", best_performance_metrics)
-
         # Save the best model weights.
         artifact = wandb.Artifact(
             f"{run.name.replace('-', '_')}_best_weights", type="weights"
@@ -195,7 +191,10 @@ def weighted_accuracy_score(y_true, y_pred):
     return accuracy_score(y_true, y_pred, sample_weight=sample_weights)
 
 
-def log_run(
+_step_metrics = defaultdict(lambda: [])
+
+
+def log_step(
     run_type,
     metrics,
     epoch=None,
@@ -206,6 +205,8 @@ def log_run(
         log_dict["epoch"] = epoch
     print(log_dict)
     wandb.log(log_dict, **kwargs)
+
+    _step_metrics[run_type].append(metrics)
 
 
 def compute_metrics(
@@ -223,6 +224,13 @@ def compute_metrics(
         "auc": roc_auc_score(label_ids, logits[:, 1]),
         "sample_size": len(preds),
     }
+
+
+def log_summary(run_type):
+    metrics_df = pd.DataFrame(_step_metrics[run_type])
+    for agg_method in ["min", "max"]:
+        for metric, value in metrics_df.agg(agg_method).items():
+            wandb.run.summary[f"{run_type}_{metric}_{agg_method}"] = value
 
 
 class ConfigWrapper:
